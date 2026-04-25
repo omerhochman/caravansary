@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">nlqdb icon</title>
+  <desc id="desc">A database cylinder with a purple chat bubble.</desc>
+  <defs>
+    <linearGradient id="bubble" x1="575" x2="735" y1="438" y2="438" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#6d4df5"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M391 318c0-48 89-87 200-87s200 39 200 87-89 87-200 87-200-39-200-87Z" stroke="#030b27" stroke-width="38"/>
+    <path d="M391 318v190c0 48 89 87 200 87 34 0 66-4 94-11" stroke="#030b27" stroke-width="38"/>
+    <path d="M391 417c0 48 89 87 200 87" stroke="#030b27" stroke-width="38"/>
+    <path d="M791 318v51" stroke="#030b27" stroke-width="38"/>
+    <path d="M619 505c69-5 128-30 172-76h38v79c0 43-29 78-72 96-12 67-30 96-62 120 4-47 0-76-15-102-19 2-39 3-61 3" stroke="url(#bubble)" stroke-width="38"/>
+  </g>
+</svg>

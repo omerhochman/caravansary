@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/brand/logo.svg" alt="nlqdb logo" width="320">
+</p>
+
 # Caravansary
 
 > One signup. Every vendor.
@@ -22,6 +26,7 @@ Pre-alpha. Planning phase. April 2026.
 - [PERSONAS.md](./PERSONAS.md) — who we're for. The "started seven side projects this year, finished zero" developer.
 - [COMPETITORS.md](./COMPETITORS.md) — landscape across LLM gateways, integration aggregators, BaaS, identity. Where the white space is.
 - [LEGAL.md](./LEGAL.md) — what we can resell, what needs partnership, what stays BYOK. The honest legal scoping.
+- [BRAND.md](./BRAND.md) — logo source of truth and the checklist for brand updates.
 
 ## The thesis
 

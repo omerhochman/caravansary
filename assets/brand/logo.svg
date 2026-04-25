@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">nlqdb logo</title>
+  <desc id="desc">A database cylinder with a chat bubble and the nlqdb wordmark.</desc>
+  <defs>
+    <style>
+      .navy {
+        fill: none;
+        stroke: #020b2d;
+        stroke-linecap: butt;
+        stroke-linejoin: round;
+        stroke-width: 18;
+      }
+
+      .purple {
+        fill: none;
+        stroke: #7650f4;
+        stroke-linecap: butt;
+        stroke-linejoin: round;
+        stroke-width: 18;
+      }
+
+      .wordmark {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 136px;
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+    </style>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#fff"/>
+
+  <g transform="translate(0 12)">
+    <path class="navy" d="M389 318v128c0 35 55 63 123 63 20 0 39-2 56-7"/>
+    <path class="navy" d="M389 446v90c0 35 55 63 123 63 25 0 49-4 68-10"/>
+    <path class="navy" d="M635 317v59"/>
+    <ellipse class="navy" cx="512" cy="318" rx="123" ry="54"/>
+    <path class="navy" d="M391 387c24 27 71 43 121 43h54"/>
+
+    <path class="purple" d="M586 430c44-3 76-19 93-41"/>
+    <path class="purple" d="M681 387v67c0 26-18 48-51 61l-8 45-30 39-5-51 7-39"/>
+    <path class="purple" d="M681 387h-34"/>
+  </g>
+
+  <text class="wordmark" x="305" y="684" fill="#020b2d">nlq</text>
+  <text class="wordmark" x="575" y="684" fill="#7650f4">db</text>
+</svg>
