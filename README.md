@@ -6,11 +6,11 @@
 Two user actions. That's the whole product:
 
 1. **Sign in** with Google or GitHub.
-2. **Copy your key.**
+2. **Copy your key** or run `caravansary init`.
 
 That's it. No setup wizard. No provider picker. No model selector. No region wheel. No "create your first project." No "verify your email." No card. No second screen.
 
-You land on a page that already has a working API key on it. Copy it, or delete it. Use it to call any category we abstract — LLMs, email, payments, hosting, monitoring, DNS — through a single endpoint. We pick the provider. We rotate the key. We absorb the rate limits. We give you one place to understand usage and, when you pay us, one Caravansary bill.
+You land on a page that already has a working API key on it. Copy it, delete it, or let the CLI retrieve it through your web session. Use it to call any category we abstract — LLMs, email, payments, hosting, monitoring, DNS — through a single endpoint. We pick the provider. We rotate the key. We absorb the rate limits. We give you one place to understand usage and, when you pay us, one Caravansary bill.
 
 You ship. We deal with the twenty dashboards.
 
@@ -41,7 +41,7 @@ That's what this is. One gate. One bell. Twenty doors handled inside.
 
 Free tier: $0. No card. Forever.
 
-Generous enough to ship a real side project on. When you outgrow it, the upgrade is one button — not a contract negotiation. Paying customers get raised limits, BYOK passthrough at zero markup, and an actual SLA. There is no third tier and there is no enterprise sales motion you have to dodge.
+Generous enough to ship a real side project on. When you outgrow it, the upgrade is one button — not a contract negotiation. Paying customers get raised limits, connected-provider passthrough at zero markup, and an actual SLA. Their apps still carry only `CARAVANSARY_API_KEY`; vendor keys and OAuth grants live in Caravansary's control plane. There is no third tier and there is no enterprise sales motion you have to dodge.
 
 ## License
 

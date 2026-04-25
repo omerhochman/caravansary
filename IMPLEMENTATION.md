@@ -10,9 +10,11 @@ April 2026. Pre-alpha planning doc.
 
 The implementation exists to protect the product promise:
 
-> **Sign in once. Copy one key. Ship.**
+> **Sign in once. Ship.**
 
-Every phase should reduce the distance between idea and first working `curl`. If a technical milestone makes the backend more correct but makes the user's first five minutes worse, it is not ready for the main path.
+The key page is the proof that the account exists. The CLI is allowed to make the promise shorter by turning that account into a working repository without another dashboard, another vendor login, or another pasted secret.
+
+Every phase should reduce the distance between idea and first working call. If a technical milestone makes the backend more correct but makes the user's first five minutes worse, it is not ready for the main path.
 
 ---
 
@@ -30,24 +32,25 @@ Ship the smallest set of endpoints that can honestly deliver the emotional promi
 
 Do not launch arbitrary container hosting, broad DNS mutation, or unconstrained email until abuse controls are already boring.
 
-### Phase 1: make setup feel one-shot
+### Phase 1: make setup one-shot
 
-Add the developer tooling that turns the API key into a working project:
+Add the developer tooling that turns a Caravansary account into a working project:
 
 - CLI install.
 - `caravansary init`.
+- Browser/device-code auth that reuses the web session.
 - Framework-aware examples.
 - GitHub Actions workflow generation.
 - Environment variable wiring.
 - Local smoke test that proves the key works.
 
-The CLI must never become a second onboarding wizard. It should be a project bootstrapper for users who already have a key.
+The CLI can be an onboarding path if it improves the promise to "sign in once, ship." It must onboard the repository, not interrogate the user about infrastructure.
 
 ### Phase 2: make graduation invisible
 
-Add BYOK, provider preferences, paid limits, and activation flows without changing the SDK or endpoint shape.
+Add connected providers, BYOK, provider preferences, paid limits, and activation flows without changing the SDK or endpoint shape.
 
-The paid user should feel like the same product got stronger, not like they migrated to a different product.
+The paid user should feel like the same product got stronger, not like they migrated to a different product. Their project still has only one runtime secret: `CARAVANSARY_API_KEY`.
 
 ### Phase 3+: earn true consolidation
 
@@ -79,17 +82,30 @@ caravansary init
 
 Use the full name. `crvs` or `carvs` can exist as aliases later, but the primary command should teach the brand and avoid ambiguity while the product is young.
 
+Doctrine:
+
+> **Web onboards the person. CLI activates the project.**
+
 `caravansary init` should:
 
 1. Detect the project type.
-2. Ask for the Caravansary key only if it cannot find one.
-3. Write the smallest safe environment file change.
-4. Install the SDK only when the project stack has an obvious package manager.
-5. Add one runnable example route/script.
-6. Offer to add GitHub Actions.
-7. Run a smoke test.
+2. Open the browser or device-code flow to confirm the existing Caravansary session.
+3. Retrieve or mint the project key through a short-lived bootstrap token.
+4. Write the smallest safe environment file change.
+5. Install the SDK only when the project stack has an obvious package manager.
+6. Add one runnable example route/script.
+7. Offer to add GitHub Actions.
+8. Run a smoke test.
 
-It should not ask the user to choose vendors, regions, models, log retention, billing plans, or rate limits.
+It should not ask the user to choose vendors, regions, models, log retention, billing plans, or rate limits. It may ask what local files it is allowed to touch.
+
+Manual key entry is only an escape hatch:
+
+```sh
+caravansary init --key csk_...
+```
+
+Use it for CI, headless machines, browser-auth failure, or users who explicitly want copy/paste. It is not the main path.
 
 ---
 
@@ -103,6 +119,8 @@ cd my-thing
 caravansary init
 npm run dev
 ```
+
+During `init`, the CLI opens the browser, confirms the already signed-in user, retrieves the Caravansary project key, writes it locally, and proves it works.
 
 After that, the project has:
 
@@ -131,7 +149,30 @@ The workflow should prove the integration, not become a deployment platform in d
 
 ---
 
-## 5. Skeleton examples
+## 5. Connected providers and integrations vault
+
+In later phases, Caravansary becomes the place where users connect third parties:
+
+- OpenAI / Anthropic / Gemini.
+- Stripe.
+- Resend / Postmark.
+- GitHub.
+- Vercel / Cloudflare / Fly.
+- AWS / GCP.
+- Slack / Notion / Linear.
+- MCP tools.
+
+These are control-plane credentials, not project credentials. The user's app does not receive `OPENAI_API_KEY`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `GITHUB_TOKEN`, or cloud access keys. It receives only:
+
+```env
+CARAVANSARY_API_KEY=...
+```
+
+The integrations vault exists to raise limits, use the user's credits, enable live modes, satisfy compliance, and reduce lock-in anxiety. It must never become first-run setup.
+
+---
+
+## 6. Skeleton examples
 
 The skeleton should cover common intent, not every provider:
 
@@ -145,16 +186,17 @@ Each example uses the same key, the same base URL, and the same SDK client. The 
 
 ---
 
-## 6. Review checklist for every implementation milestone
+## 7. Review checklist for every implementation milestone
 
 Before shipping a milestone, answer:
 
 1. Does this reduce time-to-first-working-call?
-2. Does it preserve sign in -> key -> endpoint?
+2. Does it preserve sign in -> ship?
 3. Does it avoid provider choice on the main path?
 4. Does it keep the user's code stable across backend mode changes?
 5. Does it fail safely without surprise bills or live side effects?
 6. Does it make abuse controls stronger without making onboarding worse?
 7. Does it teach Caravansary's abstraction instead of a vendor's dashboard?
+8. Does the user's project still need only `CARAVANSARY_API_KEY`?
 
 If the answer to #1 or #2 is "no," the milestone belongs off the main path.

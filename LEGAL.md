@@ -4,7 +4,7 @@
 
 April 2026. **Not legal advice.** This is a developer's working scoping document. Every URL below should be re-fetched and diffed against the version cited here before any commercial launch — vendor ToS in this space have shifted multiple times since 2024 and will keep shifting. Nothing in this document substitutes for engagement with a real lawyer before we collect a paying customer.
 
-The honest summary: **the seamless-onboarding thesis pushes us toward "platform reselling," which is the legally fraught mode. The legal scoping pushes us back toward BYOK, which is less seamless. The product design has to thread that needle, and this document is how we keep our footing.**
+The honest summary: **the seamless-onboarding thesis pushes us toward "platform reselling," which is the legally fraught mode. The legal scoping pushes us back toward connected-provider modes like BYOK, which are less seamless if exposed during onboarding. The product design has to thread that needle: projects still use only the Caravansary key, while the control plane may hold provider credentials later.**
 
 ---
 
@@ -16,7 +16,7 @@ Every third-party service we want to abstract can be integrated in one of four w
 |---|---|---|---|---|
 | **(A) Master-key resell** | We hold one master account with the vendor; all our users' calls use it; we re-bill our users. | Caravansary. | Caravansary. | High — we own AUP enforcement, abuse, KYC, MoR. |
 | **(B) Multi-tenant provisioning** | Via OAuth or partner API, we create a vendor-side subaccount for each user. | The user (with Caravansary as broker). | Vendor (or us under partner agreement). | Medium — gated by partner approval. |
-| **(C) BYOK** | User signs up with vendor directly, gives us their key. We orchestrate. | The user, directly. | The user, directly. | Low — we are a tool. |
+| **(C) BYOK** | User signs up with vendor directly, connects or stores their vendor credential in Caravansary's control plane. Runtime calls still use the Caravansary key. | The user, directly. | The user, directly. | Low — we are a tool. |
 | **(D) Formal reseller / partner** | Signed contract with vendor; revenue share; KYC; vendor reviews our use. | Mixed. | Either side. | Medium — gated by formal agreement. |
 
 The seamless thesis (sign in → key → done, no vendor-by-vendor signups) **wants Mode A or B everywhere.** The legal landscape **only allows that for some services.** This document is the per-service scoping that tells us which mode each one gets in Phase 0, and which becomes possible later via partner programs.
@@ -47,7 +47,7 @@ The seamless thesis (sign in → key → done, no vendor-by-vendor signups) **wa
 | 18 | Sentry / GlitchTip (OSS) | Self-hosted = Green | n/a | Green | n/a | **A self-hosted GlitchTip** |
 | 19 | Plausible / PostHog (OSS) | Self-hosted = Green | n/a | Green | n/a | **A self-hosted** |
 
-**Big-picture takeaway:** for the $0 free tier shipping in 2026, the cleanest viable architecture is a *hybrid* — Mode A on services whose ToS explicitly permits it (free-tier LLMs with no resale prohibition; OSS we self-host; transactional email under per-tenant domain verification), Mode B on services with formal partner-friendly OAuth flows (Stripe Connect, GitHub Apps, Vercel Integrations), and Mode C as the fallback for everything else (OpenAI, Anthropic, AWS, GCP, Postmark).
+**Big-picture takeaway:** for the $0 free tier shipping in 2026, the cleanest viable architecture is a *hybrid* — Mode A on services whose ToS explicitly permits it (free-tier LLMs with no resale prohibition; OSS we self-host; transactional email under per-tenant domain verification), Mode B on services with formal partner-friendly OAuth flows (Stripe Connect, GitHub Apps, Vercel Integrations), and Mode C as the fallback for everything else (OpenAI, Anthropic, AWS, GCP, Postmark). Mode C is a control-plane integration, not a project credential: the user's app still sees only `CARAVANSARY_API_KEY`.
 
 The product UI does not show the difference. The user signs in once, gets one key, calls one endpoint. The hybrid happens in our gateway code.
 
@@ -66,10 +66,10 @@ The product UI does not show the difference. The user signs in once, gets one ke
 **What's allowed:**
 - (A) Resell — **Not allowed** under standard Business Terms. Usage Policies require us to (i) enforce OpenAI's policies on our users, (ii) not transfer access in a way that obscures the end user from OpenAI's safety stack, and (iii) take responsibility for user usage. Pure resell where OpenAI sees only "Caravansary" and we re-bill anonymous users is a violation.
 - (B) Multi-tenant — Not allowed without a custom contract. No public OAuth/subaccount API.
-- (C) BYOK — Green. The user holds their own OpenAI account; we pass their key. This is the path used by Cursor, Continue, Cline, Helicone (paid), Portkey.
+- (C) BYOK — Green. The user holds their own OpenAI account; Caravansary stores and uses the connected credential server-side. This is the path used by Cursor, Continue, Cline, Helicone (paid), Portkey, except our user's project still only stores the Caravansary key.
 - (D) Partner — No public reseller program with revenue share. Case-by-case enterprise deals; the [OpenAI Startup Program](https://openai.com/form/startup-program/) gives credits but not resale rights.
 
-**Mode for $0 free tier: C (BYOK).** Optional Phase-2: a small "managed OpenAI" tier where users explicitly opt in, with strict per-user moderation logging and a per-call disclosure that calls flow through our master key — but only after counsel signs off.
+**Mode for default $0 free tier: not exposed.** If a user explicitly needs OpenAI before we have a partner path, the only clean mode is C through the connected-provider vault. Optional Phase-2: a small "managed OpenAI" tier where users explicitly opt in, with strict per-user moderation logging and a per-call disclosure that calls flow through our master key — but only after counsel signs off.
 
 ### 2.2 Anthropic
 
@@ -214,7 +214,7 @@ Mirrors AWS structurally. Partner Sales Console + Reseller agreement enables for
 - **Vercel Integrations (OAuth)** is the supported pattern — our app deploys to the user's own Vercel team. Green.
 - Vercel Marketplace listing is the formal partner path.
 
-**Mode: B via Integration, or C (user pastes Vercel token).** Free-tier users targeting Vercel-style hosting should use our own infra (Cloudflare Workers, Fly) rather than Vercel-via-Caravansary.
+**Mode: B via Integration, or C through the connected-provider vault.** Free-tier users targeting Vercel-style hosting should use our own infra (Cloudflare Workers, Fly) rather than Vercel-via-Caravansary.
 
 ### 2.13 Resend / Postmark / SendGrid / AWS SES
 
@@ -252,11 +252,11 @@ The seamless thesis demands one signup; the legal scoping demands per-service va
 
 - **Mode A (master-key resell):** we serve from our own account on Gemini, Groq, AWS SES, our own Cloudflare zone, our own Fly org, self-hosted GlitchTip / Plausible. The free tier is largely powered by Mode A traffic, which is what makes the unit economics work.
 - **Mode B (just-in-time provisioning):** we create or link a downstream account only when the user first needs the real-world capability. Stripe Connect onboarding appears only when the user makes their first live `/v1/payment/*` call. GitHub App installation appears only when the user calls `/v1/git/*`. The user sees the vendor ceremony at the moment it is legally required; before that, nothing.
-- **Mode C (BYOK):** for OpenAI, Anthropic, Postmark, and any vendor whose ToS we cannot navigate cleanly, BYOK is the only path. In Phase 0, those endpoints don't exist on the free tier — the master-key-friendly providers (Gemini, Groq) cover the LLM use cases. In Phase 1, we add a "bring your OpenAI key" power-user setting so paid users can pin OpenAI.
+- **Mode C (connected-provider vault):** for OpenAI, Anthropic, Postmark, and any vendor whose ToS we cannot navigate cleanly, BYOK is the only path. In Phase 0, those endpoints don't exist on the free tier — the master-key-friendly providers (Gemini, Groq) cover the LLM use cases. In Phase 1, we add a provider vault so paid users can connect OpenAI or Anthropic while their projects keep using the same Caravansary key.
 
 **This is the only architecture I can find that ships in 2026 without contracts** while preserving the two-screen onboarding for the 95% case.
 
-**The 5% case** — users who specifically need OpenAI or Anthropic from day one — sees the BYOK paste field as a graduation feature in settings, not as an onboarding requirement. They are the same persona who will pay $19/mo, so the friction is acceptable.
+**The 5% case** — users who specifically need OpenAI or Anthropic from day one — sees provider connection as a graduation feature in settings, not as an onboarding requirement. They are the same persona who will pay $19/mo, so the friction is acceptable as long as it never enters project setup.
 
 **When to graduate to Mode D (formal partner agreements):** after Series A and a real general counsel, pursue:
 - AWS Solution Provider (Phase 3)
@@ -348,7 +348,7 @@ The seamless thesis says the user signs in once and never sees a vendor. The leg
 - The user signs in. Sees one key. Free tier works against most endpoints with Mode A — they never see Gemini, Groq, AWS SES, our Cloudflare zone, our Fly org. To them, the LLM is "Caravansary's LLM."
 - The first time the user calls `/v1/payment/checkout`, a Stripe Connect dialog appears in the response: "Confirm your payout details to take payments." That's two clicks; nothing else changes. The Caravansary key still works. The endpoint still has the same shape.
 - The first time the user calls `/v1/git/*`, the GitHub App install link appears. Same pattern.
-- BYOK exists as a power-user setting after onboarding. The user discovers it when they want to.
+- Connected providers exist as power-user settings after onboarding. The user discovers them when they want to use their own vendor account, credits, or compliance posture.
 
 **This compromise is the entire reason this document is long.** We're not hiding the legal complexity from ourselves — we're hiding it from the user. The product is not legally simpler than its competitors; it is *experientially* simpler. That is the value.
 
