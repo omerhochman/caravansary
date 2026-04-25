@@ -125,45 +125,7 @@ The Caravansary key, account, docs, and other endpoints remain alive.
 
 ---
 
-## 3. Phase guidance
-
-### Phase 0: prove magic, not breadth
-
-Ship the smallest set of endpoints that can honestly deliver the emotional promise:
-
-1. LLM chat through safe free/provider routes.
-2. Transactional email with strict verification and dev-mode fallback.
-3. File/object storage.
-4. Error or event capture through self-hosted infrastructure.
-5. Payment checkout in test/simulation mode, with live activation just-in-time.
-
-Do not launch arbitrary container hosting, broad DNS mutation, or unconstrained email until abuse controls are already boring.
-
-### Phase 1: make graduation invisible
-
-Add BYOK, provider preferences, paid limits, and activation flows without changing the SDK or endpoint shape.
-
-The paid user should feel like the same product got stronger, not like they migrated to a different product.
-
-### Phase 2+: earn true consolidation
-
-Only after partner agreements, MoR coverage, and subaccount provisioning exist should we claim:
-
-- one consolidated vendor invoice,
-- managed downstream accounts,
-- pooled startup credits,
-- region guarantees,
-- enterprise procurement readiness.
-
-Until then, the honest promise is:
-
-> One key, one API, one place to understand your stack.
-
-That is still valuable. It is also defensible.
-
----
-
-## 4. Review checklist for every new endpoint
+## 3. Review checklist for every new endpoint
 
 Before adding a provider or endpoint, answer:
 

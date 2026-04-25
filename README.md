@@ -23,6 +23,7 @@ Pre-alpha. Planning phase. April 2026.
 - [COMPETITORS.md](./COMPETITORS.md) — landscape across LLM gateways, integration aggregators, BaaS, identity. Where the white space is.
 - [LEGAL.md](./LEGAL.md) — what we can resell, what needs partnership, what stays BYOK. The honest legal scoping.
 - [RISKS.md](./RISKS.md) — what can kill the product, and how we route around it without compromising the developer experience.
+- [IMPLEMENTATION.md](./IMPLEMENTATION.md) — how we phase the build while keeping onboarding, CLI, and setup paths ruthlessly short.
 
 ## The thesis
 
