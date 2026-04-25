@@ -49,6 +49,7 @@ The user should never learn our legal architecture. They should feel that infras
 | 18 | The support burden overwhelms a low-price product | Medium | Build support into the product: precise error messages, request IDs, replayable traces, status page, and self-serve diagnostics. Paid users get human support; free users get excellent tooling. |
 | 19 | "Every vendor" creates too much surface area | High | Launch with fewer categories but make them complete. Prefer five endpoints that feel magical over nine endpoints that leak vendor complexity. Add categories only when they pass the two-screen test and the abuse/legal review. |
 | 20 | Legal caution erodes the core value | Critical | Legal constraints decide backend mode, not project shape. If master-key is unsafe, use connected-provider BYOK or partner provisioning behind the same Caravansary endpoint. If a vendor requires a user-facing ceremony, delay it until first use and make it resumable. |
+| 21 | MCP turns into a second integration product with its own auth model | High | Make MCP a projection of the same Caravansary capabilities, not a parallel platform. The official MCP server uses the Caravansary account/key, exposes scoped tools, inherits endpoint limits and kill switches, and never asks the agent developer for vendor credentials. |
 
 ---
 

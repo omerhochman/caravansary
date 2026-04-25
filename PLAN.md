@@ -70,8 +70,11 @@ One key. One base URL. Categories, not vendors.
 | `POST /v1/file/put` | Object storage | Cloudflare R2 |
 | `POST /v1/error/track` | Capture an error | Sentry → self-hosted GlitchTip |
 | `POST /v1/event/track` | Product analytics event | Self-hosted Plausible / PostHog OSS |
+| `caravansary` MCP server | Agent tool surface over the same categories | Same Caravansary router; no vendor keys exposed |
 
 The user calls a category. Caravansary picks the vendor. The user never knows which one. The output is normalized — same schema regardless of which vendor served the request.
+
+The MCP server is not a separate product with separate credentials. It is the agent-native face of the same Caravansary account: one Caravansary key gives an agent tools for chat, email, file storage, events, and test checkout without handing the agent OpenAI, Stripe, Resend, or cloud credentials.
 
 ### 1.3 The graduation path (Phase 2+)
 
@@ -149,6 +152,7 @@ Stack:
 Add:
 - The "upgrade" button → Stripe Checkout. One paid tier. $19/mo flat. Connected-provider passthrough. Higher limits.
 - Connected Providers vault — paid users can connect existing OpenAI / Anthropic / Stripe / cloud accounts or store vendor keys as control-plane credentials. Their project still uses only `CARAVANSARY_API_KEY`.
+- Hosted `caravansary` MCP server — the same one-key abstraction exposed as agent tools, with scopes and audit logs.
 - Webhook fan-out (`/v1/event/subscribe`).
 - Two more categories: queues (`/v1/queue/push`), feature flags (`/v1/flag/check`).
 - A status page that's actually accurate.

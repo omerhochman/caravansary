@@ -14,9 +14,10 @@ There are five adjacent categories, each with a $1B-or-pretending-to-be leader:
 
 1. **LLM gateways** — OpenRouter is the king here. Solves "20 LLM keys" but not "20 dev-tool keys." Single-category.
 2. **Unified API for end-customer integrations** — Pipedream Connect, Composio, Nango, Merge.dev. Solve "your customer's apps integrate with X." Wrong direction; we're trying to solve "your developer's stack integrates with X."
-3. **Multi-vendor-hiding app platforms** — Vercel, Railway, Render, Supabase. Solve "one console for hosting + DB + auth," but they each lock you into their console. They are the dashboards we are routing around.
-4. **Identity-as-a-Service** — Clerk, WorkOS, Auth0. Federate identity. We use that pattern (Google/GitHub OAuth) but for one category only; we apply the same federation principle across all dev categories.
-5. **Founder credit programs** — Stripe Atlas, AWS Activate, Google for Startups. The OG "one signup → many vendor relationships," but they activate at *incorporation time*, not *runtime*, and they hand you raw credentials, which puts you back in dashboard hell.
+3. **MCP / agent tool gateways** — AgentGateway, Composio, Pipedream MCP, and API-gateway vendors exposing tools to agents. Solve "give agents tools." Usually do not solve one runtime key, one spend surface, or managed dev-infra provisioning.
+4. **Multi-vendor-hiding app platforms** — Vercel, Railway, Render, Supabase. Solve "one console for hosting + DB + auth," but they each lock you into their console. They are the dashboards we are routing around.
+5. **Identity-as-a-Service** — Clerk, WorkOS, Auth0. Federate identity. We use that pattern (Google/GitHub OAuth) but for one category only; we apply the same federation principle across all dev categories.
+6. **Founder credit programs** — Stripe Atlas, AWS Activate, Google for Startups. The OG "one signup → many vendor relationships," but they activate at *incorporation time*, not *runtime*, and they hand you raw credentials, which puts you back in dashboard hell.
 
 Caravansary is the runtime version of Stripe Atlas crossed with the seamlessness of OpenRouter, applied across every dev category, with an onboarding that fits in two screens.
 
@@ -115,6 +116,29 @@ Zapier, Make, n8n, Pipedream Workflows. Adjacent, not directly competitive.
 - **They're worth watching for the OAuth-app-management patterns** — Pipedream Workflows in particular has made it cheap-and-easy to register OAuth apps against hundreds of vendors, which is a practical capability we need.
 
 We do not, and probably never will, ship a workflow builder. If we ever do, that's a Phase-4 conversation.
+
+---
+
+## What about MCP?
+
+MCP belongs in the offering, but as a protocol surface over the same Caravansary capabilities, not as a separate agent product.
+
+The distinction:
+
+- **MCP gateways** expose tools to agents.
+- **Caravansary** gives agents and apps the same one-key runtime substrate: LLM, email, payments, files, events, connected providers, and audit.
+
+The Caravansary MCP server should let Cursor, Claude Code, Codex-style agents, and hosted agents call the same categories the SDK calls:
+
+- `caravansary.llm.chat`
+- `caravansary.email.send`
+- `caravansary.file.put`
+- `caravansary.payment.checkout_test`
+- `caravansary.event.track`
+
+The agent carries a scoped Caravansary token. It does not carry OpenAI, Stripe, Resend, GitHub, or cloud provider keys. MCP is therefore not a side quest; it is the agent-native expression of the core thesis.
+
+MCP-specific competitors matter because they can own the agent distribution layer. They do not replace the Caravansary wedge unless they also solve the harder runtime problem: one signup, one key, cross-category infrastructure, connected-provider graduation, and spend visibility.
 
 ---
 

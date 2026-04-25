@@ -40,6 +40,7 @@ Add the developer tooling that turns a Caravansary account into a working projec
 - `caravansary init`.
 - Browser/device-code auth that reuses the web session.
 - Framework-aware examples.
+- Official `@caravansary/mcp` server.
 - GitHub Actions workflow generation.
 - Environment variable wiring.
 - Local smoke test that proves the key works.
@@ -149,7 +150,45 @@ The workflow should prove the integration, not become a deployment platform in d
 
 ---
 
-## 5. Connected providers and integrations vault
+## 5. MCP server
+
+MCP is a first-class product surface, not an afterthought.
+
+The official MCP server should be:
+
+```sh
+npx @caravansary/mcp
+```
+
+or installed by:
+
+```sh
+caravansary init --mcp
+```
+
+It exposes Caravansary categories as agent tools:
+
+- `llm.chat`
+- `email.send`
+- `file.put`
+- `event.track`
+- `payment.checkout.test`
+- later: `queue.push`, `flag.check`, `dns.record`, `host.deploy`
+
+The MCP server uses the same `CARAVANSARY_API_KEY` as the SDK and REST API. It does not ask the agent developer for OpenAI, Stripe, Resend, GitHub, AWS, or Cloudflare secrets.
+
+The agent builder experience should be:
+
+1. Sign in to Caravansary.
+2. Run `caravansary init --mcp` or add the hosted MCP endpoint.
+3. Tell the agent "use Caravansary."
+4. The agent can email, store files, create test checkouts, call LLMs, and track events through one credential.
+
+MCP tool permissions must be scoped by default. A project key can allow `llm.chat` and `file.put` while denying `payment.checkout` or `email.send`. The permission model belongs to Caravansary; it should not leak vendor IAM to the user.
+
+---
+
+## 6. Connected providers and integrations vault
 
 In later phases, Caravansary becomes the place where users connect third parties:
 
@@ -172,7 +211,7 @@ The integrations vault exists to raise limits, use the user's credits, enable li
 
 ---
 
-## 6. Skeleton examples
+## 7. Skeleton examples
 
 The skeleton should cover common intent, not every provider:
 
@@ -186,7 +225,7 @@ Each example uses the same key, the same base URL, and the same SDK client. The 
 
 ---
 
-## 7. Review checklist for every implementation milestone
+## 8. Review checklist for every implementation milestone
 
 Before shipping a milestone, answer:
 
