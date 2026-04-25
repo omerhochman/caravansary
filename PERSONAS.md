@@ -103,7 +103,7 @@ Solo founder or 2-person team. Self-funded. Has revenue ambitions, not unicorn a
 - Wants to consolidate but doesn't have the time to migrate.
 
 **What they want from Caravansary.**
-1. Drop-in for at least three of their existing vendors (LLM, email, payments) so the bills consolidate.
+1. Drop-in for at least three of their existing vendors (e.g. email, storage, payments — picked by what they happen to use, not by what we'd like to demo) so the bills consolidate.
 2. BYOK at zero markup so they can keep their existing vendor pricing.
 3. One place to understand spend, and eventually a single invoice where reseller or MoR agreements make that possible.
 4. Eventual Merchant-of-Record support so they don't have to register for VAT in 47 places.
