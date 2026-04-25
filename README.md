@@ -10,7 +10,7 @@ Two user actions. That's the whole product:
 
 That's it. No setup wizard. No provider picker. No model selector. No region wheel. No "create your first project." No "verify your email." No card. No second screen.
 
-You land on a page that already has a working API key on it. Copy it, or delete it. Use it to call any vendor we abstract — LLMs, email, payments, hosting, monitoring, DNS — through a single endpoint. We pick the provider. We rotate the key. We absorb the rate limits. We send one bill, when (and only when) you ever want to pay.
+You land on a page that already has a working API key on it. Copy it, or delete it. Use it to call any category we abstract — LLMs, email, payments, hosting, monitoring, DNS — through a single endpoint. We pick the provider. We rotate the key. We absorb the rate limits. We give you one place to understand usage and, when you pay us, one Caravansary bill.
 
 You ship. We deal with the twenty dashboards.
 

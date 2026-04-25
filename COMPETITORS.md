@@ -27,8 +27,8 @@ Caravansary is the runtime version of Stripe Atlas crossed with the seamlessness
 | Product | Category | What they unify | Pricing | Free tier | MoR? | BYOK? | Onboarding screens (estimated) |
 |---|---|---|---|---|---|---|---|
 | **OpenRouter** | LLM gateway | 300+ LLMs | ~5.5% margin on top-up | Some free models (low limits) | Yes | Yes (1M req free, then surcharge) | 3–4 |
-| **Vercel AI Gateway** | LLM gateway | All major LLMs | 0% markup on paid; $5 free credit | $5/mo | Yes | Yes (0% markup) | 4–5 (gated by Vercel signup) |
-| **Cloudflare AI Gateway** | LLM gateway | BYOK only | Free + Workers usage; 100k log events free | Yes | No (BYOK only) | Yes | 5+ (gated by Cloudflare signup) |
+| **Vercel AI Gateway** | LLM gateway | All major LLMs | 0% markup; $5 monthly included credit until paid top-up | $5 monthly included credit | Yes | Yes (0% markup) | 4–5 (gated by Vercel signup) |
+| **Cloudflare AI Gateway** | LLM gateway | BYOK only | Core gateway free; persistent log storage capped by Workers plan | Yes | No (BYOK only) | Yes | 5+ (gated by Cloudflare signup) |
 | **Portkey** | LLM gateway + obs | 200+ LLMs | Per-log; free tier + paid | Yes | No (BYOK middleware) | Yes | 3–4 |
 | **LiteLLM (proxy)** | LLM gateway (OSS) | 100+ providers | OSS + self-host infra (~$200–500/mo) | Free (MIT) | No | Yes | Self-host = many |
 | **Helicone** | LLM gateway + obs | 100+ models | Free 10k req/mo, $79/mo+ | 10k req/mo | No | Yes | 3 |
@@ -132,7 +132,7 @@ This is a **white-space opportunity** in itself: nobody curates the startup-cred
 
 After surveying ~40 products, the honest answer:
 
-> **No one occupies the full intersection of (a) one signup, (b) cross-category — LLMs *and* email *and* DNS *and* payments *and* monitoring, (c) merchant-of-record so the developer gets one invoice, (d) BYOK opt-out so they can graduate, (e) developer-grade DX with SDKs and provisioning APIs, (f) two-screen onboarding.**
+> **No one occupies the full intersection of (a) one signup, (b) cross-category — LLMs *and* email *and* DNS *and* payments *and* monitoring, (c) one place to understand spend and, eventually, reseller/MoR-backed vendor consolidation, (d) BYOK opt-out so they can graduate, (e) developer-grade DX with SDKs and provisioning APIs, (f) two-screen onboarding.**
 
 The closest things:
 - **OpenRouter** — does (a)(b within LLMs)(c)(d) but is single-category.

@@ -64,7 +64,7 @@ One key. One base URL. Categories, not vendors.
 | `POST /v1/llm/chat` | Chat completion, OpenAI-compatible | Gemini Flash → Groq → DeepSeek → OpenRouter free → (fallback) Anthropic |
 | `POST /v1/llm/embed` | Text embeddings | Cloudflare Workers AI → Voyage → OpenAI |
 | `POST /v1/email/send` | Transactional email | Resend → SendGrid → AWS SES (rotating per-tenant subdomain) |
-| `POST /v1/payment/checkout` | Hosted checkout link | Stripe Connect Standard (user's account, OAuth provisioned silently on first call) |
+| `POST /v1/payment/checkout` | Hosted checkout link | Immediate test checkout; live money requires just-in-time Stripe Connect activation |
 | `POST /v1/host/deploy` | Deploy a container | Fly.io → Cloudflare Workers (auto-pick by image type) |
 | `POST /v1/dns/record` | Create/edit a DNS record | Cloudflare DNS |
 | `POST /v1/file/put` | Object storage | Cloudflare R2 |
@@ -113,7 +113,7 @@ The gap is that **most developers, most of the time, want exactly one thing from
 Caravansary is the bet that **a uniform "send an email / charge a card / summarize a PDF" API, fronting the actual vendors invisibly, is what 80% of indie projects need 100% of the time.** When that bet is right, we win because:
 
 1. **One signup beats twenty.** The dev-experience win is so large that we do not need to be cheaper than the underlying vendors. We need to be roughly even.
-2. **Free-tier stacking is a real arbitrage.** Gemini Flash gives 500 RPD free. Groq gives 14,400 RPD free for Llama 3.1 8B. Cloudflare Workers AI gives 10,000 Neurons/day free. Resend gives 3,000 emails/month free. By routing intelligently across multiple free tiers, we offer an aggregate free quota larger than any single vendor would. Our cost to provide this is dominated by routing engineering, not API spend.
+2. **Free-tier stacking is a real arbitrage, but not a quota-circumvention strategy.** Gemini's free limits are model/project-specific and must be read from AI Studio, Groq publishes base org limits such as 14,400 RPD for Llama 3.1 8B, Cloudflare Workers AI gives 10,000 Neurons/day free, and Resend gives 3,000 emails/month free. By routing honestly across truly distinct providers, we offer a useful aggregate free tier without pretending public quotas are infinitely shardable. Our cost to provide this is dominated by routing engineering and abuse controls, not API spend.
 3. **Aggregation creates a graduation moat.** When the user does grow out of free, BYOK at zero markup keeps them on us — because they keep the same code path and the same metrics dashboard, and we charge a platform fee, not a margin on tokens.
 
 The "one signup" experience is the wedge. The "free-tier stacking" is what makes the wedge profitable to give away. The "BYOK graduation" is what keeps users when they win.
@@ -122,9 +122,9 @@ The "one signup" experience is the wedge. The "free-tier stacking" is what makes
 
 ## 3. Phasing
 
-### Phase 0 — The seven endpoints, no UI (~6 weeks, solo)
+### Phase 0 — The core endpoints, no UI (~6 weeks, solo)
 
-Ship the gateway. Ship the OAuth flow. Ship the key page. Ship the seven `/v1/*` endpoints. Ship the SDKs (TS first, then Python, then Go).
+Ship the gateway. Ship the OAuth flow. Ship the key page. Ship the smallest coherent set of `/v1/*` endpoints. Ship the SDKs (TS first, then Python, then Go).
 
 Goals:
 - Sign in with Google → key page in <10 seconds.
@@ -163,7 +163,7 @@ Success criteria:
 
 - Multi-key (named keys, per-environment, scoped permissions).
 - Team workspaces (one billing relationship, many keys).
-- OAuth-provisioned downstream accounts: when a user's usage on `/v1/payment/*` indicates a real e-commerce build, we silently create them a Stripe Connect Standard account in the background and migrate their charges onto it. Same for Cloudflare zones, Vercel projects, etc. The user discovers this later — *if* they want — by clicking "where does my data live?" and seeing the chain.
+- Just-in-time downstream activation: when a user's usage on `/v1/payment/*` crosses from simulation into real money, we return a Stripe-hosted activation link and then resume the same API flow. Same pattern for Cloudflare zones, Vercel projects, etc. The user sees the vendor only at the moment the real world requires it.
 - Audit log surfaced in UI.
 - Status page with real SLO numbers.
 
@@ -184,7 +184,7 @@ Success criteria:
 
 **Rule 2 — Default everything.** The free tier exposes zero choices. Provider, model, region, retention, rate limit, key name, project name — all chosen by us. The user can override later, after they have shipped. They cannot override before.
 
-**Rule 3 — One key, one endpoint, one bill.** The user sees one credential, one base URL, one (potentially $0) invoice. Every multi-vendor routing decision is invisible.
+**Rule 3 — One key, one endpoint, one spend surface.** The user sees one credential, one base URL, one Caravansary platform invoice, and one usage ledger. True vendor-consolidated billing arrives only where reseller/MoR agreements make it real; every routing decision remains invisible either way.
 
 **Rule 4 — No card on free tier, ever.** Not "to verify identity." Not "for spam protection." Not "it'll only charge if you go over." No.
 
@@ -208,8 +208,8 @@ Success criteria:
 
 The unit of cost on this platform is the underlying vendor's bill. We minimize ours by:
 
-1. **Routing free-tier traffic exclusively to free-tier vendor quotas.** Gemini Flash 500 RPD, Groq Llama 14,400 RPD, Cloudflare Workers AI 10,000 Neurons/day, Resend 100 emails/day, R2 10GB stored, D1 5M reads/day, Workers 100k req/day. These quotas are per-our-account, not per-our-user — so as we grow, we open a second master account, then a third, then partition users across them by hash. (This is legally OK on every vendor in the free-tier list as long as we are honest about who the end user is — see [LEGAL.md](./LEGAL.md).)
-2. **Caching aggressively.** Every endpoint has a deterministic cache key. Identical LLM prompts, identical email templates, identical R2 paths — we serve from edge cache before calling the vendor.
+1. **Routing free-tier traffic to honest public quotas.** Gemini free limits are model/project-specific and not guaranteed, Groq Llama 3.1 8B currently publishes a 14,400 RPD org-level base limit, Cloudflare Workers AI gives 10,000 Neurons/day, Resend allows 100 emails/day and 3,000/month, R2 includes 10GB-month stored, D1 includes 5M rows read/day, and Workers includes 100k req/day. These quotas are per account/org/project, not per user. We do not shard users across duplicate master accounts to evade limits; when public quotas stop being enough, we add paid capacity, partner programs, or BYOK.
+2. **Caching aggressively inside tenant boundaries.** Every endpoint has a deterministic tenant-scoped cache key. Identical prompts, templates, or paths within the same tenant can be served from edge cache before calling the vendor. Cross-tenant caching is allowed only for public demos, static examples, or artifacts explicitly marked shareable.
 3. **Normalizing schemas at the gateway.** No SDK overhead, no per-vendor adapter bloat — the gateway is small enough to fit in a Cloudflare Worker.
 
 Target: blended cost-per-active-free-user **under $0.10/mo**. This is achievable because most of the free quota is large and most users will not approach it.
@@ -326,7 +326,7 @@ These are all reasonable Phase-2 additions. They are wrong for Phase 0.
 | A free-tier vendor (Gemini, Groq, CF AI) revokes / shrinks their free quota | Medium | High | Multi-vendor router with N≥3 free providers per category. If one dies, we still have N−1. |
 | Vendor ToS interpretation flips against us (esp. OpenAI/Anthropic on master-key resale) | Medium | High | Master-key path used only for endpoints whose ToS is unambiguous (Gemini, Groq, DeepSeek, Resend, Cloudflare). LLMs without clear permission default to BYOK. See [LEGAL.md](./LEGAL.md). |
 | Abuse: spammers using `/v1/email/send` to send spam under our accounts | High | High | Per-user domain verification before email send; outbound abuse heuristics; per-tenant subaccount on Resend; killswitch. |
-| Abuse: prompt-injection / jailbreak content getting routed via our master LLM key, attributing the abuse to us with the vendor | Medium | Medium | Run OpenAI moderation (free) on all `/v1/llm/chat` inputs and outputs on the master-key path. Log abuse. Cooperate with vendor. |
+| Abuse: prompt-injection / jailbreak content getting routed via our master LLM key, attributing the abuse to us with the vendor | Medium | Medium | Run a safety classifier on master-key inputs and outputs — OpenAI Moderation API where permitted, or provider/local guardrails where data routing requires it. Log abuse minimally. Cooperate with vendor. |
 | Cost runaway because someone discovered our master key gives them free Anthropic credits | Low | Catastrophic | Per-user daily $ ceiling, hard. Per-key second-level rate limit at 100x typical use. Synthetic abuse canary. |
 | The free-tier-stacking arbitrage gets killed (vendors notice, force BYOK) | Medium | Medium | We always offered "BYOK at zero markup" as the paid-tier value prop. If forced, free tier becomes "BYOK + $0 platform fee" and paid tier becomes "BYOK + $19 + extras". The product survives. |
 | Big LLM gateway (OpenRouter, Vercel) ships an "all dev categories" version of this | Medium | High | We're a wedge product (DX, $0, no signups) not a gateway product (latency, model breadth). If we lose the wedge race, we lose. Move fast on the seamless onboarding lock-in. |

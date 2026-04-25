@@ -33,7 +33,7 @@ The seamless thesis (sign in → key → done, no vendor-by-vendor signups) **wa
 | 4 | Groq API | **Likely A-friendly** | n/a | Green | Yellow | **A on free tier** (verify ToS language) |
 | 5 | DeepSeek API | Yellow | n/a | Green | Yellow | **C; A only with explicit ToS read** |
 | 6 | OpenRouter (free models) | n/a (already an aggregator) | n/a | Green | n/a | **C only** — chaining aggregators violates their AUP |
-| 7 | Stripe | n/a | **Green via Connect Standard** | Green | Green | **B (Connect Standard)** — silently OAuth-provision on first use |
+| 7 | Stripe | n/a | **Green via Connect onboarding** | Green | Green | **B (Connect)** — just-in-time user onboarding before live money moves |
 | 8 | AWS | Yellow | Green via Organizations + APN | Green | Green (APN/Marketplace) | **C now, D later** |
 | 9 | Google Cloud | Yellow | Green via Partner Sales Console | Green | Green | **C now, D later** |
 | 10 | Cloudflare | Yellow | **Green via Tenant API (partner-only)** | Green | Green (Partner Network) | **A on our own zones for free tier; B after partner approval** |
@@ -109,7 +109,7 @@ The product UI does not show the difference. The user signs in once, gets one ke
 - Pricing — https://groq.com/pricing/
 
 **What's allowed:**
-- Groq's free tier serves OSS models (Llama, Mixtral, Whisper) at 14,400 RPD for Llama 3.1 8B and 1,000 RPD for 70B. Their ToS as of recent revisions has been broadly developer-friendly; resale-style usage is not explicitly prohibited. **Verify current text before launch.**
+- Groq's documented base limits include 14,400 RPD for Llama 3.1 8B Instant, but limits apply at the organization level and exact current limits should be verified in the account limits page before launch. Their ToS as of recent revisions has been broadly developer-friendly; resale-style usage is not explicitly prohibited. **Verify current text before launch.**
 - (C) BYOK — Green.
 - (D) Partner — Informal as of 2025; no public reseller program.
 
@@ -121,7 +121,7 @@ DeepSeek pricing (as of late 2025) is among the cheapest API-LLMs available. ToS
 
 ### 2.6 OpenRouter (as a downstream)
 
-We could trivially use OpenRouter as one of our LLM providers (their `:free` models offer ~200 RPD). **Don't, except as last-resort fallback.** OpenRouter's AUP prohibits "reselling or rebroadcasting OpenRouter services" — chaining aggregators is a clear violation. Use OpenRouter only on the BYOK path (paid tier) when the user explicitly chooses it.
+We could trivially use OpenRouter as one of our LLM providers (their free plan currently exposes free models behind a tight daily request limit). **Don't, except as last-resort fallback.** OpenRouter's AUP prohibits "reselling or rebroadcasting OpenRouter services" — chaining aggregators is a clear violation. Use OpenRouter only on the BYOK path (paid tier) when the user explicitly chooses it.
 
 ### 2.7 Stripe
 
@@ -132,14 +132,14 @@ We could trivially use OpenRouter as one of our LLM providers (their `:free` mod
 - Stripe Services Agreement — https://stripe.com/legal/ssa
 
 **What's allowed (this is the textbook B case):**
-- **Standard accounts** — user has a full Stripe account, OAuth-linked to our platform. Stripe is the merchant; we are the platform. Best for the seamless flow: when the user makes their first `/v1/payment/checkout` call, we silently kick off Stripe Connect Standard OAuth in the background; the user only sees a "verify your email with Stripe" prompt when Stripe's KYC requires it. Cleanest legal posture.
+- **Standard accounts / Connect onboarding** — user has a Stripe relationship linked to our platform. Stripe handles merchant onboarding and identity collection; we are the platform. Best for the seamless flow: `/v1/payment/checkout` works in test mode immediately, and the first live-money call returns a hosted activation link that resumes the same API flow after onboarding. Cleanest legal posture.
 - **Express accounts** — Stripe-hosted onboarding; we do more lifting; we can take a cut.
 - **Custom accounts** — full embedding; more compliance obligations.
 - **Stripe is NOT a Merchant of Record by default.** Connect is a platform/marketplace pattern, not MoR. Don't conflate.
 
-**Mode: B via Connect Standard.** The end user is the legal merchant for their charges; we orchestrate. Platform fees via `application_fee`; we are a platform, not a payment processor.
+**Mode: B via Connect.** The end user is the legal merchant for their charges; we orchestrate. Platform fees via Connect application fees where applicable; we are a platform, not a payment processor.
 
-**The seamlessness compromise:** the *first* Stripe call by a user *will* surface a Stripe Connect onboarding flow because Stripe's KYC requires the merchant to provide their own legal info — there is no way around this. We hide it from the rest of the experience: until they make their first paid charge, the Stripe relationship doesn't exist on their side.
+**The seamlessness compromise:** the *first live-money* Stripe call by a user *will* surface a Stripe-hosted onboarding flow because Stripe's KYC requires the merchant to provide their own legal info — there is no way around this. We hide it from the rest of the experience: until they make their first live charge, the payment endpoint can operate in test/simulation mode.
 
 ### 2.8 AWS
 
@@ -251,7 +251,7 @@ The seamless thesis demands one signup; the legal scoping demands per-service va
 **Architecture:** *Hybrid with the user blissfully unaware.* The user signs in to Caravansary once. We mint a Caravansary key. From their perspective, that key works against every `/v1/*` endpoint. Internally, depending on the endpoint:
 
 - **Mode A (master-key resell):** we serve from our own account on Gemini, Groq, AWS SES, our own Cloudflare zone, our own Fly org, self-hosted GlitchTip / Plausible. The free tier is largely powered by Mode A traffic, which is what makes the unit economics work.
-- **Mode B (silent OAuth provisioning):** we silently create or link a downstream account when the user first touches a Mode-B endpoint. Stripe Connect Standard fires only when the user makes their first `/v1/payment/*` call. GitHub App fires only when the user calls `/v1/git/*`. The user sees one OAuth dialog at the moment of first paid use; before that, nothing.
+- **Mode B (just-in-time provisioning):** we create or link a downstream account only when the user first needs the real-world capability. Stripe Connect onboarding appears only when the user makes their first live `/v1/payment/*` call. GitHub App installation appears only when the user calls `/v1/git/*`. The user sees the vendor ceremony at the moment it is legally required; before that, nothing.
 - **Mode C (BYOK):** for OpenAI, Anthropic, Postmark, and any vendor whose ToS we cannot navigate cleanly, BYOK is the only path. In Phase 0, those endpoints don't exist on the free tier — the master-key-friendly providers (Gemini, Groq) cover the LLM use cases. In Phase 1, we add a "bring your OpenAI key" power-user setting so paid users can pin OpenAI.
 
 **This is the only architecture I can find that ships in 2026 without contracts** while preserving the two-screen onboarding for the 95% case.
