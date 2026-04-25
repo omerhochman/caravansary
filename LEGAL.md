@@ -4,6 +4,8 @@
 
 April 2026. **Not legal advice.** This is a developer's working scoping document. Every URL below should be re-fetched and diffed against the version cited here before any commercial launch — vendor ToS in this space have shifted multiple times since 2024 and will keep shifting. Nothing in this document substitutes for engagement with a real lawyer before we collect a paying customer.
 
+**On reading weight.** This file devotes a disproportionate amount of text to LLM vendors (six of them, in §2.1–§2.6) because there happen to be many distinct LLM vendors with non-trivial and frequently-changing ToS to scope. The page-weight should not be read as a signal that LLMs are the central category. Caravansary is one API key replacing many across nine categories; the legal complexity per category is uneven, and LLM happens to be the heaviest. Email (§2.13), payments (§2.7), and the cloud platforms (§2.8–§2.10) carry equal product weight even though they take fewer paragraphs to scope.
+
 The honest summary: **the seamless-onboarding thesis pushes us toward "platform reselling," which is the legally fraught mode. The legal scoping pushes us back toward connected-provider modes like BYOK, which are less seamless if exposed during onboarding. The product design has to thread that needle: projects still use only the Caravansary key, while the control plane may hold provider credentials later.**
 
 ---

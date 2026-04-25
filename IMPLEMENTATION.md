@@ -22,13 +22,14 @@ Every phase should reduce the distance between idea and first working call. If a
 
 ### Phase 0: prove magic, not breadth
 
-Ship the smallest set of endpoints that can honestly deliver the emotional promise:
+Ship the smallest set of endpoints that can honestly deliver the emotional promise. The product is one key replacing many, so Phase 0 must touch enough distinct categories to make that obvious — shipping a single category, however polished, would not.
 
-1. LLM chat through safe free/provider routes.
+1. Auto-issued `<key>.caravansary.app` subdomain plus a constrained DNS endpoint on our own zone.
 2. Transactional email with strict verification and dev-mode fallback.
 3. File/object storage.
 4. Error or event capture through self-hosted infrastructure.
-5. Payment checkout in test/simulation mode, with live activation just-in-time.
+5. LLM chat through safe free/provider routes.
+6. Payment checkout in test/simulation mode, with live activation just-in-time.
 
 Do not launch arbitrary container hosting, broad DNS mutation, or unconstrained email until abuse controls are already boring.
 
@@ -126,8 +127,8 @@ During `init`, the CLI opens the browser, confirms the already signed-in user, r
 After that, the project has:
 
 - `CARAVANSARY_API_KEY` in the local env file.
-- A tiny server-side example that calls `/v1/llm/chat`.
-- Optional examples for email, file storage, events, and payment test checkout.
+- A tiny server-side example that calls one Caravansary endpoint — picked from the framework's likely first need (e.g. `/v1/email/send` for a Next.js app with auth scaffolding, `/v1/file/put` for an upload route). The example is not hardcoded to `/v1/llm/chat`; the CLI picks the category that's most useful for the detected stack.
+- Optional examples for the other categories (email, file storage, events, DNS, LLM, payment test checkout).
 - A generated smoke test.
 - Optional GitHub Actions workflow with the secret name documented.
 
@@ -168,12 +169,13 @@ caravansary init --mcp
 
 It exposes Caravansary categories as agent tools:
 
-- `llm.chat`
 - `email.send`
 - `file.put`
 - `event.track`
+- `dns.record`
+- `llm.chat`
 - `payment.checkout.test`
-- later: `queue.push`, `flag.check`, `dns.record`, `host.deploy`
+- later: `queue.push`, `flag.check`, `host.deploy`
 
 The MCP server uses the same `CARAVANSARY_API_KEY` as the SDK and REST API. It does not ask the agent developer for OpenAI, Stripe, Resend, GitHub, AWS, or Cloudflare secrets.
 
@@ -182,9 +184,9 @@ The agent builder experience should be:
 1. Sign in to Caravansary.
 2. Run `caravansary init --mcp` or add the hosted MCP endpoint.
 3. Tell the agent "use Caravansary."
-4. The agent can email, store files, create test checkouts, call LLMs, and track events through one credential.
+4. The agent can email, store files, register DNS records, create test checkouts, call LLMs, and track events through one credential.
 
-MCP tool permissions must be scoped by default. A project key can allow `llm.chat` and `file.put` while denying `payment.checkout` or `email.send`. The permission model belongs to Caravansary; it should not leak vendor IAM to the user.
+MCP tool permissions must be scoped by default. A project key can allow `email.send` and `file.put` while denying `payment.checkout` or `dns.record`. The permission model belongs to Caravansary; it should not leak vendor IAM to the user.
 
 ---
 
@@ -215,13 +217,14 @@ The integrations vault exists to raise limits, use the user's credits, enable li
 
 The skeleton should cover common intent, not every provider:
 
-- "Ask the model" -> `/v1/llm/chat`
 - "Send a dev email" -> `/v1/email/send`
 - "Store a file" -> `/v1/file/put`
 - "Track an event" -> `/v1/event/track`
+- "Add a DNS record on your auto-issued subdomain" -> `/v1/dns/record`
+- "Ask the model" -> `/v1/llm/chat`
 - "Create a test checkout" -> `/v1/payment/checkout`
 
-Each example uses the same key, the same base URL, and the same SDK client. The code teaches the category abstraction. It should never mention Gemini, Groq, Resend, Stripe, or Cloudflare unless the user asks what happened under the hood.
+Each example uses the same key, the same base URL, and the same SDK client. The code teaches the category abstraction. It should never mention Gemini, Groq, Resend, Stripe, or Cloudflare unless the user asks what happened under the hood. The first example a new user sees should not be the LLM one — that biases the perception of what Caravansary is.
 
 ---
 

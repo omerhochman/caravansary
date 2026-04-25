@@ -6,13 +6,23 @@ April 2026. Pre-alpha planning doc. Subject to change as Phase 0 lands.
 
 ---
 
+## Reading note — what this product is and isn't
+
+This is **not** an LLM gateway. It is **not** an AI product. It is **one API key replacing twenty** across every category of developer infrastructure a side project needs: domain, hosting, file storage, transactional email, error tracking, product analytics, payments, *and* LLMs. LLMs are one row in the endpoint table. Nothing in the value proposition depends on the LLM endpoint existing.
+
+If, while reading this document, LLM examples start to feel disproportionate, that is a documentation bug, not a product fact. The reason LLM examples recur is that the LLM ecosystem currently has the largest number of distinct vendors per category (six in `LEGAL.md`), so per-vendor scoping naturally produces more LLM paragraphs. Discount accordingly. The product comparison tests, success metrics, and architectural decisions in this document apply equally to email, storage, DNS, payments, and the rest.
+
+If you ever find yourself describing Caravansary by leading with "an LLM…", stop and reread this section.
+
+---
+
 ## 0. The thesis (read this first, then read it again)
 
 The product is **the absence of signup forms.**
 
 A developer arrives. They click "Sign in with Google" or "Sign in with GitHub." They land on a page that already has a working API key on it. Copy. Or delete. That is the entire onboarding.
 
-Behind that single key is **every developer-infrastructure category they will ever need for a side project, ready to call:** LLMs, embeddings, transactional email, payments, DNS, file storage, queues, error tracking, analytics, container hosting. The user does not pick a provider. The user does not pick a model. The user does not pick a region. The user does not name the key. The user does not set rate limits. The user does not configure billing. The user does not verify email. The user does not see a wizard.
+Behind that single key is **every developer-infrastructure category they will ever need for a side project, ready to call:** transactional email, file storage, DNS and a public subdomain, error tracking, product analytics, payments, container hosting, queues, feature flags, LLMs and embeddings. The user does not pick a provider. The user does not pick a region. The user does not name the key. The user does not set rate limits. The user does not configure billing. The user does not verify email. The user does not see a wizard.
 
 The user gets a key and an endpoint and ships.
 
@@ -61,20 +71,20 @@ One key. One base URL. Categories, not vendors.
 
 | Path | What it does | Provider(s) we route to |
 |---|---|---|
-| `POST /v1/llm/chat` | Chat completion, OpenAI-compatible | Gemini Flash → Groq → DeepSeek → OpenRouter free → (fallback) Anthropic |
-| `POST /v1/llm/embed` | Text embeddings | Cloudflare Workers AI → Voyage → OpenAI |
-| `POST /v1/email/send` | Transactional email | Resend → SendGrid → AWS SES (rotating per-tenant subdomain) |
+| `POST /v1/dns/record` | Create/edit a DNS record (and auto-issue a `<key>.caravansary.app` subdomain on first call) | Cloudflare DNS on our zone |
+| `POST /v1/email/send` | Transactional email | AWS SES (per-tenant verified domain or Caravansary subdomain) → Resend / Postmark on BYOK |
+| `POST /v1/file/put` | Object storage | Cloudflare R2 |
+| `POST /v1/error/track` | Capture an error | Self-hosted GlitchTip → Sentry |
+| `POST /v1/event/track` | Product analytics event | Self-hosted PostHog OSS |
 | `POST /v1/payment/checkout` | Hosted checkout link | Immediate test checkout; live money requires just-in-time Stripe Connect activation |
 | `POST /v1/host/deploy` | Deploy a container | Fly.io → Cloudflare Workers (auto-pick by image type) |
-| `POST /v1/dns/record` | Create/edit a DNS record | Cloudflare DNS |
-| `POST /v1/file/put` | Object storage | Cloudflare R2 |
-| `POST /v1/error/track` | Capture an error | Sentry → self-hosted GlitchTip |
-| `POST /v1/event/track` | Product analytics event | Self-hosted Plausible / PostHog OSS |
+| `POST /v1/llm/chat` | Chat completion, OpenAI-compatible | Gemini Flash → Groq → DeepSeek → OpenRouter free → (fallback) Anthropic |
+| `POST /v1/llm/embed` | Text embeddings | Cloudflare Workers AI → Voyage → OpenAI |
 | `caravansary` MCP server | Agent tool surface over the same categories | Same Caravansary router; no vendor keys exposed |
 
 The user calls a category. Caravansary picks the vendor. The user never knows which one. The output is normalized — same schema regardless of which vendor served the request.
 
-The MCP server is not a separate product with separate credentials. It is the agent-native face of the same Caravansary account: one Caravansary key gives an agent tools for chat, email, file storage, events, and test checkout without handing the agent OpenAI, Stripe, Resend, or cloud credentials.
+The MCP server is not a separate product with separate credentials. It is the agent-native face of the same Caravansary account: one Caravansary key gives an agent the same nine categories the SDK has, without handing the agent any vendor credentials.
 
 ### 1.3 The graduation path (Phase 2+)
 
@@ -91,11 +101,11 @@ These are conscious omissions. Each one would be reasonable in a different produ
 
 - No "create a new project" button. (There is one project: yours.)
 - No "team workspace" tab. (Phase 2.)
-- No model picker. (We pick.)
-- No region picker. (We pick — closest to user's egress.)
-- No spend cap slider. (The free tier is a hard cap; paid tier is unlimited until your card declines.)
 - No "API key name" field. (The key is named for you: `csk_live_<8 chars>`.)
 - No multiple keys per account in free tier. (One account, one key. Rotate by deleting.)
+- No provider picker for any category. (We pick — for every endpoint, not just LLMs.)
+- No region picker. (We pick — closest to user's egress.)
+- No spend cap slider. (The free tier is a hard cap; paid tier is unlimited until your card declines.)
 - No webhook configuration page. (Phase 2.)
 - No retention slider for logs. (We pick: 7 days free, 30 paid.)
 - No theme picker. (System.)
@@ -113,13 +123,13 @@ This is fine for the vendor. It is hostile to the developer.
 
 The gap is that **most developers, most of the time, want exactly one thing from each vendor: a working endpoint.** They do not want to learn Stripe's data model on day one. They do not want to think about OpenAI's tier limits on day one. They want to send an email, charge a card, summarize a PDF, and ship.
 
-Caravansary is the bet that **a uniform "send an email / charge a card / summarize a PDF" API, fronting the actual vendors invisibly, is what 80% of indie projects need 100% of the time.** When that bet is right, we win because:
+Caravansary is the bet that **a uniform "send an email / store a file / register a domain / charge a card / summarize a PDF" API, fronting the actual vendors invisibly, is what 80% of indie projects need 100% of the time.** When that bet is right, we win because:
 
 1. **One signup beats twenty.** The dev-experience win is so large that we do not need to be cheaper than the underlying vendors. We need to be roughly even.
-2. **Free-tier stacking is a real arbitrage, but not a quota-circumvention strategy.** Gemini's free limits are model/project-specific and must be read from AI Studio, Groq publishes base org limits such as 14,400 RPD for Llama 3.1 8B, Cloudflare Workers AI gives 10,000 Neurons/day free, and Resend gives 3,000 emails/month free. By routing honestly across truly distinct providers, we offer a useful aggregate free tier without pretending public quotas are infinitely shardable. Our cost to provide this is dominated by routing engineering and abuse controls, not API spend.
-3. **Aggregation creates a graduation moat.** When the user does grow out of free, Connected Providers keep them on us — because they can bring existing vendor accounts, credits, or keys into the Caravansary control plane while keeping the same code path and metrics dashboard. We charge a platform fee, not a margin on tokens.
+2. **Free-tier composition is a real arbitrage, but not a quota-circumvention strategy.** Many infrastructure vendors publish meaningful free quotas — Cloudflare Workers, R2, and DNS for edge and storage; AWS SES for transactional email; self-hosted GlitchTip and PostHog OSS for monitoring; multiple LLM providers for inference. By composing one honest account per provider with hard per-user caps, we offer a useful aggregate free tier without pretending public quotas are infinitely shardable. Our cost to provide this is dominated by routing engineering and abuse controls, not API spend.
+3. **Aggregation creates a graduation moat.** When the user does grow out of free, Connected Providers keep them on us — because they can bring existing vendor accounts, credits, or keys into the Caravansary control plane while keeping the same code path and metrics dashboard. We charge a platform fee, not a margin on usage.
 
-The "one signup" experience is the wedge. The "free-tier stacking" is what makes the wedge profitable to give away. The Connected Providers graduation is what keeps users when they win.
+The "one signup" experience is the wedge. The "free-tier composition" is what makes the wedge profitable to give away. The Connected Providers graduation is what keeps users when they win.
 
 ---
 
@@ -137,7 +147,8 @@ Goals:
 Success criteria:
 - 100 sign-ups via word of mouth (HN "Show HN" + r/SaaS + Bluesky).
 - 10 of them make a real call within 60 seconds of signing in.
-- Total LLM spend on our master keys < $50 across all 100 users in the first month. (If this is wrong, the architecture is wrong.)
+- 5 of them ship a side project that uses **three or more** Caravansary categories. (This is the "one key replaces twenty" proof, not "they used our LLM endpoint.")
+- Blended free-tier vendor spend across all categories < $50 across all 100 users in the first month. (If this is wrong, the architecture is wrong.)
 
 Stack:
 - Edge gateway: Cloudflare Workers (free tier: 100k req/day per script).
@@ -145,7 +156,7 @@ Stack:
 - Long-term storage: Cloudflare R2 (logs, audit).
 - Auth: Better Auth (OSS) on Workers, with Google + GitHub OAuth providers.
 - Metering: in-memory rate limit + Upstash Redis token bucket (free tier: 10k commands/day) + nightly Lago batch into Stripe.
-- LLM router: in-house, modeled on the LiteLLM proxy schema but written for Workers. Health-check each provider every 60s, route around 5xx and 429.
+- Provider router: in-house, generic across categories — the same router serves email, storage, DNS, error tracking, and LLM endpoints. Health-check each provider every 60s, route around 5xx and 429.
 
 ### Phase 1 — Polish, more vendors, the graduation path (~3 months)
 
@@ -161,7 +172,7 @@ Success criteria:
 - 1,000 free users.
 - 50 paid users.
 - $1,000 MRR.
-- Free-tier blended cost-per-user < $0.10/mo. (If this fails, kill or reprice the most-expensive endpoint.)
+- Free-tier blended cost-per-user < $0.10/mo. (If this fails, identify the most-expensive endpoint of the month — could be LLM, could be email, could be storage egress — and either reprice it, gate it harder, or move it BYOK-only.)
 
 ### Phase 2 — Team workspaces, audit log, partner provisioning (~6 months)
 
@@ -212,13 +223,13 @@ Success criteria:
 
 ### 5.1 Why our cost to serve a free-tier user is near zero
 
-The unit of cost on this platform is the underlying vendor's bill. We minimize ours by:
+The unit of cost on this platform is the underlying vendor's bill, summed across all categories the user touches. We minimize ours by:
 
-1. **Routing free-tier traffic to honest public quotas.** Gemini free limits are model/project-specific and not guaranteed, Groq Llama 3.1 8B currently publishes a 14,400 RPD org-level base limit, Cloudflare Workers AI gives 10,000 Neurons/day, Resend allows 100 emails/day and 3,000/month, R2 includes 10GB-month stored, D1 includes 5M rows read/day, and Workers includes 100k req/day. These quotas are per account/org/project, not per user. We do not shard users across duplicate master accounts to evade limits; when public quotas stop being enough, we add paid capacity, partner programs, or BYOK.
-2. **Caching aggressively inside tenant boundaries.** Every endpoint has a deterministic tenant-scoped cache key. Identical prompts, templates, or paths within the same tenant can be served from edge cache before calling the vendor. Cross-tenant caching is allowed only for public demos, static examples, or artifacts explicitly marked shareable.
+1. **Routing free-tier traffic to honest public quotas across every category.** Cloudflare Workers includes 100k req/day, R2 includes 10GB-month stored with no egress, D1 includes 5M rows read/day, AWS SES from EC2 includes 62,000 emails/month, self-hosted GlitchTip and PostHog OSS run on a single Fly machine, and multiple LLM providers expose meaningful daily free quotas (Gemini, Groq, Cloudflare Workers AI). These quotas are per account/org/project, not per user. We do not shard users across duplicate master accounts to evade limits; when public quotas stop being enough, we add paid capacity, partner programs, or BYOK.
+2. **Caching aggressively inside tenant boundaries.** Every endpoint has a deterministic tenant-scoped cache key. Identical requests within the same tenant — repeated DNS lookups, idempotent storage writes, repeated prompts, repeated event payloads — can be served from edge cache before calling the vendor. Cross-tenant caching is allowed only for public demos, static examples, or artifacts explicitly marked shareable.
 3. **Normalizing schemas at the gateway.** No SDK overhead, no per-vendor adapter bloat — the gateway is small enough to fit in a Cloudflare Worker.
 
-Target: blended cost-per-active-free-user **under $0.10/mo**. This is achievable because most of the free quota is large and most users will not approach it.
+Target: blended cost-per-active-free-user **under $0.10/mo across all nine categories combined**. This is achievable because most of the free quota is large and most users will not approach it on any single category.
 
 ### 5.2 Why our cost to *build* the free tier is near zero
 
@@ -259,9 +270,9 @@ Phase 3+ may introduce a Team plan ($X per seat) and an Enterprise plan (custom,
 
 ### 5.4 Long-term unit economics
 
-The blended LLM cost dominates everything else. At the price points free-tier vendors offer in 2026 (Gemini Flash $0.075/M input, Groq Llama 3.1 8B $0.05/M input, DeepSeek $0.14/M input), the cost to serve 1,000 chat requests of 500-token average is around $0.05–$0.20 depending on routing. The free tier soaks 80%+ of this cost into vendor free tiers. Paid users pay $19/mo and we project a margin north of 60% on them at typical usage; connected-provider customers still pay us the $19/mo platform fee while their vendor spend flows through their own accounts.
+Cost per active free user is the sum of nine category costs, not one. We expect a long-tail shape: most users will only meaningfully exercise two or three categories (typically auth-email + storage + one of LLM / events / DNS), and most usage within those categories will fit inside vendor free quotas. The blended-vendor cost to serve a typical free user is therefore dominated by whichever single category that user happens to lean on hardest — for some users that's email, for some that's storage egress, for some that's LLM tokens. Paid users pay $19/mo flat and we project a margin north of 60% on them at typical usage; connected-provider customers still pay us the $19/mo platform fee while their vendor spend flows through their own accounts.
 
-If the free-tier LLM economics ever invert (free vendor tiers shrink, model prices rise), the contingency is a constrained managed demo model plus Connected Providers for users who need serious volume. The free path still demonstrates "one key, working endpoint"; it does not become a vendor-key setup wizard.
+The contingency for any single category's free economics inverting (a vendor shrinks free tier, a price rises) is the same regardless of which category it is: kill switch on the master-key route, fall back to a constrained managed demo path, and graduate serious usage into Connected Providers at zero markup. The free path still demonstrates "one key, working endpoints"; it does not become a vendor-key setup wizard. This contingency is category-agnostic — the same playbook applies whether the wobbly category is LLM, email, hosting, or DNS.
 
 ---
 
@@ -286,14 +297,15 @@ If the free-tier LLM economics ever invert (free vendor tiers shrink, model pric
             │   - Schema normalizer                            │
             │   - Usage event emitter → Lago                   │
             └─────────────────────────────────────────────────┘
-                │            │            │            │
-                ▼            ▼            ▼            ▼
-            ┌───────┐    ┌───────┐    ┌───────┐    ┌───────┐
-            │Gemini │    │Resend │    │Stripe │    │  CF   │
-            │ Groq  │    │  SES  │    │Connect│    │  R2   │
-            │ DSeek │    │  Pmk  │    │       │    │  D1   │
-            │  CFAI │    │       │    │       │    │       │
-            └───────┘    └───────┘    └───────┘    └───────┘
+                │            │            │            │            │            │
+                ▼            ▼            ▼            ▼            ▼            ▼
+            ┌───────┐    ┌───────┐    ┌───────┐    ┌───────┐    ┌───────┐    ┌───────┐
+            │ DNS / │    │ Email │    │Storage│    │ Error │    │Payment│    │  LLM  │
+            │subdom.│    │       │    │       │    │ /Evts │    │       │    │       │
+            │  (CF) │    │ (SES, │    │ (R2)  │    │(Glitch│    │(Stripe│    │(Gemini│
+            │       │    │Resend)│    │       │    │Tip,PH)│    │Connect│    │ Groq, │
+            └───────┘    └───────┘    └───────┘    └───────┘    └───────┘    │ etc.) │
+                                                                              └───────┘
 
                             ┌───────────┐
                             │   Auth    │
@@ -329,8 +341,8 @@ These are all reasonable Phase-2 additions. They are wrong for Phase 0.
 
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|
-| A free-tier vendor (Gemini, Groq, CF AI) revokes / shrinks their free quota | Medium | High | Multi-vendor router with N≥3 free providers per category. If one dies, we still have N−1. |
-| Vendor ToS interpretation flips against us (esp. OpenAI/Anthropic on master-key resale) | Medium | High | Master-key path used only for endpoints whose ToS is unambiguous (Gemini, Groq, DeepSeek, Resend, Cloudflare). LLMs without clear permission default to Connected Providers after graduation. See [LEGAL.md](./LEGAL.md). |
+| A free-tier vendor in *any* category (LLM, email, storage, DNS, etc.) revokes / shrinks their free quota | Medium | High | Multi-vendor router with N≥2 free providers per category where the market supports it; OSS self-host (GlitchTip, PostHog, etc.) where it doesn't. If one dies, we still have N−1 or the self-hosted fallback. |
+| Vendor ToS interpretation flips against us (esp. OpenAI/Anthropic on master-key resale, or any single-source category vendor we depend on) | Medium | High | Master-key path used only for endpoints whose ToS is unambiguous (per-vendor scoping in [LEGAL.md](./LEGAL.md)). Anything ambiguous defaults to Connected Providers after graduation. The risk applies equally to email providers, hosting providers, and storage providers, not just LLMs. |
 | Abuse: spammers using `/v1/email/send` to send spam under our accounts | High | High | Per-user domain verification before email send; outbound abuse heuristics; per-tenant subaccount on Resend; killswitch. |
 | Abuse: prompt-injection / jailbreak content getting routed via our master LLM key, attributing the abuse to us with the vendor | Medium | Medium | Run a safety classifier on master-key inputs and outputs — OpenAI Moderation API where permitted, or provider/local guardrails where data routing requires it. Log abuse minimally. Cooperate with vendor. |
 | Cost runaway because someone discovered our master key gives them free Anthropic credits | Low | Catastrophic | Per-user daily $ ceiling, hard. Per-key second-level rate limit at 100x typical use. Synthetic abuse canary. |
@@ -342,8 +354,9 @@ These are all reasonable Phase-2 additions. They are wrong for Phase 0.
 
 ## 8. What this is *not*
 
+- **Not an LLM gateway.** LLMs are one of nine categories. The product proposition does not depend on the LLM endpoint at all — a user who only ever calls `/v1/dns/*`, `/v1/email/*`, and `/v1/file/*` gets the full "one key replaces twenty" value. If you are scoping work and you find yourself prioritizing the LLM endpoint because "that's the most exciting one," reread the reading note at the top of this file.
 - Not Zapier — we don't connect SaaS apps to each other for non-developers. We are a developer's API key.
-- Not OpenRouter — we are not an LLM-only gateway. LLMs are one of nine categories.
+- Not OpenRouter — they are an LLM-only gateway. We are not.
 - Not Vercel — we don't host the user's code. We host the API call to the host.
 - Not Pipedream — we don't help you build integrations into other people's apps. We replace the keys you'd use to build *your* app.
 - Not Stripe Atlas — we don't incorporate companies. We replace the dev-runtime side of what Atlas covers via perks (and we're free).
