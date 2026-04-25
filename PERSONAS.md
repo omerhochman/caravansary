@@ -105,7 +105,7 @@ Solo founder or 2-person team. Self-funded. Has revenue ambitions, not unicorn a
 **What they want from Caravansary.**
 1. Drop-in for at least three of their existing vendors (LLM, email, payments) so the bills consolidate.
 2. BYOK at zero markup so they can keep their existing vendor pricing.
-3. A single invoice they can hand to their accountant.
+3. One place to understand spend, and eventually a single invoice where reseller or MoR agreements make that possible.
 4. Eventual Merchant-of-Record support so they don't have to register for VAT in 47 places.
 
 **What they don't want.**
@@ -114,7 +114,7 @@ Solo founder or 2-person team. Self-funded. Has revenue ambitions, not unicorn a
 - Marketing emails.
 
 **What "won" looks like.**
-They've consolidated 5 invoices into 1, kept the same vendors via BYOK, and are paying us $19/mo for the privilege of one bill. They tell other founders.
+They've consolidated 5 vendor dashboards into one operational view, kept the same vendors via BYOK, and are paying us $19/mo for the privilege of one key and one control plane. They tell other founders.
 
 ---
 
@@ -183,7 +183,7 @@ That's what's in the walls of the caravansary.
 | # | Use case | Persona | Phase |
 |---|---|---|---|
 | 1 | Send transactional email from a side project without signing up for an email provider | P1, P5 | 0 |
-| 2 | Charge a card for a paid feature without setting up a Stripe account | P1, P2 | 0 (via Stripe Connect Standard, OAuth-provisioned silently) |
+| 2 | Charge a card for a paid feature without building a Stripe integration first | P1, P2 | 0 (test checkout immediately; Stripe activation just-in-time for live money) |
 | 3 | Call an LLM in your code without picking a provider or model | P1, P2, P3, P5 | 0 |
 | 4 | Give an AI agent a single credential that grants email + payments + storage + LLM | P2 | 0 |
 | 5 | Ship a Postgres-backed app without provisioning Postgres yourself | P1 | 1 (planned, hand-off to nlqdb-style abstraction) |

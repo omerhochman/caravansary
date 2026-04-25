@@ -14,9 +14,10 @@ There are five adjacent categories, each with a $1B-or-pretending-to-be leader:
 
 1. **LLM gateways** — OpenRouter is the king here. Solves "20 LLM keys" but not "20 dev-tool keys." Single-category.
 2. **Unified API for end-customer integrations** — Pipedream Connect, Composio, Nango, Merge.dev. Solve "your customer's apps integrate with X." Wrong direction; we're trying to solve "your developer's stack integrates with X."
-3. **Multi-vendor-hiding app platforms** — Vercel, Railway, Render, Supabase. Solve "one console for hosting + DB + auth," but they each lock you into their console. They are the dashboards we are routing around.
-4. **Identity-as-a-Service** — Clerk, WorkOS, Auth0. Federate identity. We use that pattern (Google/GitHub OAuth) but for one category only; we apply the same federation principle across all dev categories.
-5. **Founder credit programs** — Stripe Atlas, AWS Activate, Google for Startups. The OG "one signup → many vendor relationships," but they activate at *incorporation time*, not *runtime*, and they hand you raw credentials, which puts you back in dashboard hell.
+3. **MCP / agent tool gateways** — AgentGateway, Composio, Pipedream MCP, and API-gateway vendors exposing tools to agents. Solve "give agents tools." Usually do not solve one runtime key, one spend surface, or managed dev-infra provisioning.
+4. **Multi-vendor-hiding app platforms** — Vercel, Railway, Render, Supabase. Solve "one console for hosting + DB + auth," but they each lock you into their console. They are the dashboards we are routing around.
+5. **Identity-as-a-Service** — Clerk, WorkOS, Auth0. Federate identity. We use that pattern (Google/GitHub OAuth) but for one category only; we apply the same federation principle across all dev categories.
+6. **Founder credit programs** — Stripe Atlas, AWS Activate, Google for Startups. The OG "one signup → many vendor relationships," but they activate at *incorporation time*, not *runtime*, and they hand you raw credentials, which puts you back in dashboard hell.
 
 Caravansary is the runtime version of Stripe Atlas crossed with the seamlessness of OpenRouter, applied across every dev category, with an onboarding that fits in two screens.
 
@@ -27,8 +28,8 @@ Caravansary is the runtime version of Stripe Atlas crossed with the seamlessness
 | Product | Category | What they unify | Pricing | Free tier | MoR? | BYOK? | Onboarding screens (estimated) |
 |---|---|---|---|---|---|---|---|
 | **OpenRouter** | LLM gateway | 300+ LLMs | ~5.5% margin on top-up | Some free models (low limits) | Yes | Yes (1M req free, then surcharge) | 3–4 |
-| **Vercel AI Gateway** | LLM gateway | All major LLMs | 0% markup on paid; $5 free credit | $5/mo | Yes | Yes (0% markup) | 4–5 (gated by Vercel signup) |
-| **Cloudflare AI Gateway** | LLM gateway | BYOK only | Free + Workers usage; 100k log events free | Yes | No (BYOK only) | Yes | 5+ (gated by Cloudflare signup) |
+| **Vercel AI Gateway** | LLM gateway | All major LLMs | 0% markup; $5 monthly included credit until paid top-up | $5 monthly included credit | Yes | Yes (0% markup) | 4–5 (gated by Vercel signup) |
+| **Cloudflare AI Gateway** | LLM gateway | BYOK only | Core gateway free; persistent log storage capped by Workers plan | Yes | No (BYOK only) | Yes | 5+ (gated by Cloudflare signup) |
 | **Portkey** | LLM gateway + obs | 200+ LLMs | Per-log; free tier + paid | Yes | No (BYOK middleware) | Yes | 3–4 |
 | **LiteLLM (proxy)** | LLM gateway (OSS) | 100+ providers | OSS + self-host infra (~$200–500/mo) | Free (MIT) | No | Yes | Self-host = many |
 | **Helicone** | LLM gateway + obs | 100+ models | Free 10k req/mo, $79/mo+ | 10k req/mo | No | Yes | 3 |
@@ -118,6 +119,29 @@ We do not, and probably never will, ship a workflow builder. If we ever do, that
 
 ---
 
+## What about MCP?
+
+MCP belongs in the offering, but as a protocol surface over the same Caravansary capabilities, not as a separate agent product.
+
+The distinction:
+
+- **MCP gateways** expose tools to agents.
+- **Caravansary** gives agents and apps the same one-key runtime substrate: LLM, email, payments, files, events, connected providers, and audit.
+
+The Caravansary MCP server should let Cursor, Claude Code, Codex-style agents, and hosted agents call the same categories the SDK calls:
+
+- `caravansary.llm.chat`
+- `caravansary.email.send`
+- `caravansary.file.put`
+- `caravansary.payment.checkout_test`
+- `caravansary.event.track`
+
+The agent carries a scoped Caravansary token. It does not carry OpenAI, Stripe, Resend, GitHub, or cloud provider keys. MCP is therefore not a side quest; it is the agent-native expression of the core thesis.
+
+MCP-specific competitors matter because they can own the agent distribution layer. They do not replace the Caravansary wedge unless they also solve the harder runtime problem: one signup, one key, cross-category infrastructure, connected-provider graduation, and spend visibility.
+
+---
+
 ## What about credit programs?
 
 AWS Activate (~$1k self-serve, up to $300k for AI), Azure for Startups (~$150k), Google for Startups (~$350k for AI), Cloudflare for Startups (~$250k), Anthropic ($25k, 12-mo), OpenAI startup credits via partners. Stripe Atlas perks include $2.5k Stripe credits + $50k partner deals.
@@ -132,7 +156,7 @@ This is a **white-space opportunity** in itself: nobody curates the startup-cred
 
 After surveying ~40 products, the honest answer:
 
-> **No one occupies the full intersection of (a) one signup, (b) cross-category — LLMs *and* email *and* DNS *and* payments *and* monitoring, (c) merchant-of-record so the developer gets one invoice, (d) BYOK opt-out so they can graduate, (e) developer-grade DX with SDKs and provisioning APIs, (f) two-screen onboarding.**
+> **No one occupies the full intersection of (a) one signup, (b) cross-category — LLMs *and* email *and* DNS *and* payments *and* monitoring, (c) one place to understand spend and, eventually, reseller/MoR-backed vendor consolidation, (d) BYOK opt-out so they can graduate, (e) developer-grade DX with SDKs and provisioning APIs, (f) two-screen onboarding.**
 
 The closest things:
 - **OpenRouter** — does (a)(b within LLMs)(c)(d) but is single-category.
